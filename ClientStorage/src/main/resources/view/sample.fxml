@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox fx:id="cloudField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="400.0" prefWidth="600.0"
+      xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="cloudApp.ClientController">
+    <VBox prefHeight="345.0" prefWidth="211.0">
+        <TextField fx:id="textFolder"/>
+        <ListView fx:id="listFolder" prefHeight="389.0" prefWidth="208.0"/>
+    </VBox>
+    <VBox prefHeight="400.0" prefWidth="395.0">
+        <ListView fx:id="listFiles" prefHeight="170.0" prefWidth="392.0"/>
+        <TextField fx:id="textFile" prefHeight="35.0" prefWidth="392.0"/>
+        <Button fx:id="sendFile" onAction="#sendFile" prefHeight="35.0" prefWidth="392.0" text="SEND FILE"/>
+        <HBox prefHeight="27.0" prefWidth="392.0">
+            <Button fx:id="openFile" onAction="#openFile" prefHeight="25.0" prefWidth="200.0" text="OPEN FILE"/>
+            <Button fx:id="deleteFile" onAction="#deleteFile" prefHeight="25.0" prefWidth="200.0"
+                    text="DELETE FILE"/>
+        </HBox>
+        <ListView fx:id="listOnFiles" prefHeight="170.0" prefWidth="392.0"/>
+    </VBox>
+</HBox>

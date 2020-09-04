@@ -1,0 +1,201 @@
+
+#separatorContact {
+    -fx-width: 256;
+    -fx-height: 1;
+    -fx-background-color: #f2f2f2;
+}
+#contactTab {
+    -fx-background-color: #ffffff;
+    -fx-padding: 8px 5px 8px 5px;
+    -fx-border-color: #f2f2f2;
+    -fx-border-style: solid;
+    -fx-border-width: 0px 0px 0px 0px;
+    -fx-min-height: 64px;
+    -fx-spacing: 16px;
+}
+#contactTabName {
+    -fx-font: normal 16px 'Calibri';
+    -fx-padding: 12px 0px 0px 0px;
+}
+#mainPane {
+    -fx-font: normal 18px 'serif';
+    -fx-text-fill: #042a38;
+}
+#contactsPane{
+    -fx-background-color: #ffffff;
+}
+#main_chat_pane{
+
+}
+#message_entry_pane{
+
+}
+#mainChatPane{
+    -fx-background-color: #f2f2f2;
+    -fx-padding: 10px 20px 10px 20px;
+}
+#textMessage .scroll-pane{
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: never;
+}
+#textMessage{
+    -fx-background-color: #ffffff;
+}
+#userPanel {
+    -fx-background-color: #423f4a;
+}
+#chatTopPanel {
+    -fx-background-color: #423f4a;
+    -fx-border-color: #f2f2f2;
+    -fx-border-style: solid;
+    -fx-border-width: 0px 0px 0px 1px;
+}
+#sendButton {
+    -fx-background-color: #ffffff;
+}
+
+#sendButton:pressed {
+    -fx-background-color: #f2f2f2;
+}
+
+/* Search contacts field without highlights */
+#fieldSearch {
+    -fx-background-image: url(/resources/images/search.png);
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: left center;
+    -fx-background-size: 20px 20px;
+    -fx-font-size: 12;
+    -fx-padding: 5px 8px 5px 8px;
+    -fx-background-position: left 10 center;
+
+    -fx-background-insets: 0;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f2f2f2;
+    -fx-border-style: solid;
+    -fx-border-width: 1px 0px 1px 0px;
+}
+#fieldSearch:focused .content {
+    -fx-background-color: #ffffff;
+}
+#fieldSearch:focused {
+    -fx-highlight-fill: #7ecfff;
+    -fx-background-image: none;
+}
+#fieldSearch .content {
+    -fx-padding: 10px;
+    -fx-text-fill: gray;
+    -fx-highlight-fill: #7ecfff;
+    -fx-background-color: #ffffff;
+}
+
+/* User message text field without highlights */
+.text-area {
+    -fx-background-insets: 0;
+    -fx-background-color: #ffffff;
+}
+.text-area:focused .content {
+    -fx-background-color: #ffffff;
+}
+.text-area:focused {
+    -fx-highlight-fill: #7ecfff;
+}
+.text-area .content {
+    -fx-padding: 10px;
+    -fx-text-fill: gray;
+    -fx-highlight-fill: #7ecfff;
+    -fx-background-color: #ffffff;
+}
+
+/* Scrollpane without highlights */
+.scroll-pane {
+    -fx-background-insets: 0;
+    -fx-background-color: transparent, #f2f2f2, transparent, #f2f2f2;
+}
+.scroll-pane:focused .content {
+    -fx-background-color: transparent, #f2f2f2, transparent, #f2f2f2;
+}
+.scroll-pane:focused {
+    -fx-highlight-fill: #7ecfff;
+}
+.scroll-pane .content {
+    -fx-padding: 10px;
+    -fx-text-fill: #f2f2f2;
+    -fx-highlight-fill: #7ecfff;
+}
+
+/* Style scrollpane without arrows */
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color :transparent;
+    -fx-border-color :transparent;
+    -fx-background-radius : 0.0em;
+    -fx-border-radius :2.0em;
+}
+
+.scroll-bar:horizontal .increment-button ,
+.scroll-bar:horizontal .decrement-button {
+    -fx-background-color :transparent;
+    -fx-background-radius : 0.0em;
+    -fx-padding :0.0 0.0 10.0 0.0;
+}
+
+.scroll-bar:vertical .increment-button ,
+.scroll-bar:vertical .decrement-button {
+    -fx-background-color :transparent;
+    -fx-background-radius : 0.0em;
+    -fx-padding :0.0 10.0 0.0 0.0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow{
+    -fx-shape : " ";
+    -fx-padding :0.15em 0.0;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow{
+    -fx-shape : " ";
+    -fx-padding :0.0 0.15em;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color :derive(white,90.0%);
+    -fx-background-insets : 2.0, 0.0, 0.0;
+    -fx-background-radius : 2.0em;
+}
+
+.scroll-bar:horizontal .thumb:hover,
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color :derive(#4D4C4F,70.0%);
+    -fx-background-insets : 2.0, 0.0, 0.0;
+    -fx-background-radius : 2.0em;
+}
+
+/*Menu bar */
+.menu-bar {
+    -fx-background-color: #423f4a;
+    -fx-border-width: 0;
+    -fx-background-image: url(/resources/images/menu.png);
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: right center;
+    -fx-background-size: 32px 32px;
+}
+.menu-bar .label {
+    -fx-font: normal 14px 'Calibri';
+    -fx-padding: 10.0px;
+}
+.menu-bar .menu-button:hover, .menu-bar .menu-button:focused, .menu-bar .menu-button:showing {
+    -fx-background: #423f4a;
+    -fx-opacity: 0.5;
+}
+.menu-item {
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em;
+    -fx-background: #ffaf20 ;
+}
+.menu-item .label{
+    -fx-font-size: 14.0 pt;
+}
+.menu-item .label:hover{
+    -fx-font-size: 14.0 pt;
+}
