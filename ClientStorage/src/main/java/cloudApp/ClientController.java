@@ -44,12 +44,15 @@ public class ClientController implements Initializable {
 
     public void sendFile(ActionEvent actionEvent) throws IOException {
         if(! pathFull) {
-            if(ServerListener.sendFile("./upload " + textFile.getText(), PATH + textFolder.getText() + "\\"))
+            if(ServerListener.sendFile("./upload# " + textFile.getText(), PATH + textFolder.getText() + "\\"))
                 textFile.setText("File uploaded!");
         } else {
-            if(ServerListener.sendFile("./upload " + textFile.getText(), PATH + "\\"))
+            if(ServerListener.sendFile("./upload# " + textFile.getText(), PATH + "\\"))
                 textFile.setText("File uploaded!");
         }
+        while(ServerListener.isStat())
+            listOnFiles.getItems().clear();
+            setListOnFiles();
     }
 
     public void openFile(ActionEvent actionEvent) {
@@ -71,7 +74,12 @@ public class ClientController implements Initializable {
     }
 
     public void deleteFile(ActionEvent actionEvent) {
-
+            if (ServerListener.deleteFile(textFile.getText())) {
+                textFile.setText(textFile.getText() + " file deleted from repository!");
+            }
+        while(ServerListener.isStat())
+            listOnFiles.getItems().clear();
+        setListOnFiles();
     }
 
     public void readFiles(File baseDirectory) {
@@ -84,8 +92,15 @@ public class ClientController implements Initializable {
         }
     }
 
-    public void setListOnFiles(ListView <String> listOnFiles) {
-        this.listOnFiles = listOnFiles;
+    public void setListOnFiles() {
+        while(true) {
+            String[] s = ServerListener.getS().split("#");
+            if(s[s.length - 1].equals("OK")) {
+                for(String value : s)
+                    listOnFiles.getItems().add(value);
+                break;
+            }
+        }
     }
 
     public void readFolders(File baseDirectory) {
@@ -135,7 +150,12 @@ public class ClientController implements Initializable {
                     }
                 }
             });
+            listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                textFile.clear();
+                textFile.setText(newValue);
+            });
             serverListener = new ServerListener();
+            setListOnFiles();
         }).start();
     }
 }

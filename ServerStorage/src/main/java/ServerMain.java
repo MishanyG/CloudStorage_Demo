@@ -26,6 +26,7 @@ public class ServerMain {
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
+            e.printStackTrace();
             LOGGER.error("Server error...");
         } finally {
         }

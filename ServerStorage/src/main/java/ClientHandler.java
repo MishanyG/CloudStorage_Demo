@@ -6,12 +6,12 @@ import java.util.Objects;
 
 public class ClientHandler implements Runnable {
 
-    private static final String PATH = "Server/OutFiles/";
+    private static final String PATH = "ServerStorage/OutFiles/";
     private final ServerMain server;
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
-    private final List <String> comands = Arrays.asList("./upload", "./download", "./delete", "./contents");
+    private final List <String> commands = Arrays.asList("./upload", "./download", "./delete");
 
     public ClientHandler(ServerMain server, Socket socket) {
         try {
@@ -26,19 +26,21 @@ public class ClientHandler implements Runnable {
     }
 
     public synchronized void readMessages() throws IOException {
+        readFiles(new File(PATH));
         while(true) {
             String msgFromClient = inputStream.readUTF();
-            for(String comand : comands) {
-                if(msgFromClient.startsWith(comand)) {
-                    switch(comand) {
+            for(String command : commands) {
+                if(msgFromClient.startsWith(command)) {
+                    switch(command) {
                         case "./upload":
                             receivedFile();
-                            ServerMain.LOGGER.error("File received! OK");
+                            readFiles(new File(PATH));
+                            ServerMain.LOGGER.info("File received! OK");
                             break;
                         case "./download":
-                        case "./delete":
                             break;
-                        case "./contents":
+                        case "./delete":
+                            delete();
                             readFiles(new File(PATH));
                             break;
                     }
@@ -49,37 +51,56 @@ public class ClientHandler implements Runnable {
 
     private void receivedFile() {
         try {
-            ServerMain.LOGGER.error("Started getting file...");
+            ServerMain.LOGGER.info("Started getting file...");
             String fileName = inputStream.readUTF();
             long fileLength = inputStream.readLong();
             File file = new File(PATH + fileName);
             if(file.createNewFile()) {
-                try(FileOutputStream fos = new FileOutputStream(file)) {
-                    byte[] buffer = new byte[256];
-                    if(fileLength < 256) {
-                        fileLength += 256;
+                try{
+                    byte [] buf  = new byte [1024];
+                    FileOutputStream fos = new FileOutputStream(file);
+                    InputStream is = socket.getInputStream();
+                    BufferedInputStream bis = new BufferedInputStream(is);
+                    int count = 0;
+                    while ((fileLength > 0) && (count = bis.read(buf, 0, (int)Math.min(buf.length, fileLength))) > 0){
+                        fos.write(buf, 0, count);
+                        fileLength -= count;
                     }
-                    int read = 0;
-                    for(int i = 0; i < fileLength / 256; i++) {
-                        read = inputStream.read(buffer);
-                        fos.write(buffer, 0, read);
-                    }
+                    fos.close();
+                }catch(IOException e){
+                    e.printStackTrace();
                 }
             }
         } catch(IOException e) {
-            ServerMain.LOGGER.error("Error getting file...");
+            e.printStackTrace();
         }
     }
 
-    public void readFiles(File baseDirectory) throws IOException {
+    private void readFiles(File baseDirectory) throws IOException {
+        outputStream.writeUTF("UPDATE");
+        String list;
         if(baseDirectory.isDirectory()) {
             for(File file : Objects.requireNonNull(baseDirectory.listFiles())) {
                 if(file.isFile()) {
-                    assert false;
-                    outputStream.writeUTF(file.getName());
+                    list = file.getName();
+                    outputStream.writeUTF(list);
+                    System.out.println(list);
                 }
             }
             outputStream.writeUTF("OK");
+            outputStream.flush();
+        }
+    }
+
+    private void delete() {
+        try {
+            String fileName = inputStream.readUTF();
+            File file = new File(PATH + fileName);
+            if(file.delete()) {
+                ServerMain.LOGGER.info(PATH + fileName + " file deleted!");
+            } else ServerMain.LOGGER.info(PATH + fileName + " file not found");
+        } catch(IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -88,6 +109,7 @@ public class ClientHandler implements Runnable {
         try {
             readMessages();
         } catch(IOException e) {
+            e.printStackTrace();
             ServerMain.LOGGER.error("Client error...");
         }
 
