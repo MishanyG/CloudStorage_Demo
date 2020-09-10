@@ -35,4 +35,12 @@ public class ServerMain {
     public static void main(String[] args) {
         new ServerMain();
     }
+
+    public synchronized void subscribe(ClientHandler client) {
+        clients.add(client);
+    }
+
+    public synchronized void unsubscribe(ClientHandler client) {
+        clients.remove(client);
+    }
 }

@@ -1,0 +1,43 @@
+/**
+     * Constructs an {@code IOException} with the specified cause and a
+     * detail message of {@code (cause==null ? null : cause.toString())}
+     * (which typically contains the class and detail message of {@code cause}).
+     * This constructor is useful for IO exceptions that are little more
+     * than wrappers for other throwables.
+     *
+     * @param cause
+     *        The cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A null value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     *
+     * @since 1.6
+     */
+/**
+ * A {@code PrintStream} adds functionality to another output stream,
+ * namely the ability to print representations of various data values
+ * conveniently.  Two other features are provided as well.  Unlike other output
+ * streams, a {@code PrintStream} never throws an
+ * {@code IOException}; instead, exceptional situations merely set an
+ * internal flag that can be tested via the {@code checkError} method.
+ * Optionally, a {@code PrintStream} can be created so as to flush
+ * automatically; this means that the {@code flush} method is
+ * automatically invoked after a byte array is written, one of the
+ * {@code println} methods is invoked, or a newline character or byte
+ * ({@code '\n'}) is written.
+ *
+ * <p> All characters printed by a {@code PrintStream} are converted into
+ * bytes using the given encoding or charset, or platform's default character
+ * encoding if not specified.
+ * The {@link PrintWriter} class should be used in situations that require
+ *  writing characters rather than bytes.
+ *
+ * <p> This class always replaces malformed and unmappable character sequences with
+ * the charset's default replacement string.
+ * The {@linkplain java.nio.charset.CharsetEncoder} class should be used when more
+ * control over the encoding process is required.
+ *
+ * @author     Frank Yellin
+ * @author     Mark Reinhold
+ * @since      1.0
+ */
+

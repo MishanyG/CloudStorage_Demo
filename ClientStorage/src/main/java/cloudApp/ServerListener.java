@@ -12,8 +12,17 @@ public class ServerListener {
     private static DataOutputStream outputStream;
     private static String s = "";
     private static boolean stat = false;
+    private static String PATH = "";
+    private static String fileName = "";
+    private static ClientController controller;
+    private static String authString;
+    private static String userName;
+    private static AuthorizationController authController;
+    private static boolean activeSessionFlag = true;
 
-    public ServerListener() {
+    public ServerListener(String authString, AuthorizationController authController) {
+        this.authString = authString;
+        this.authController = authController;
         launch();
     }
 
@@ -31,14 +40,38 @@ public class ServerListener {
                     } catch(InterruptedException e) {
                         e.printStackTrace();
                     }
+                    authorizationServer(authString);
+                    while(true) {
+                        String msg = null;
+                        try {
+                            msg = inputStream.readUTF();
+                            if(msg.startsWith("./logIn") || msg.startsWith("./singUp")) {
+                                String[] param = msg.split("\\s");
+                                if(param[1].equals("passed")) {
+                                    authController.loadClientScreen();
+                                    break;
+                                } else {
+                                    authController.failedAuthorization();
+                                }
+                            }
+                        } catch(IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    label:
                     while(true) {
                         try {
                             String message = inputStream.readUTF();
-                            if(message.equals("quit")) {
-                                break;
-                            } else if(message.equals("UPDATE")) {
-                                s = "";
-                                resultList();
+                            switch(message) {
+                                case "quit":
+                                    break label;
+                                case "UPDATE":
+                                    s = "";
+                                    resultList();
+                                    break;
+                                case "DOWNLOAD":
+                                    receivedFile(PATH, fileName);
+                                    break;
                             }
                         } catch(IOException e) {
                             e.printStackTrace();
@@ -69,15 +102,36 @@ public class ServerListener {
         }
     }
 
+    private static void authorizationServer(String authString) {
+        sendMsg(authString);
+    }
+
+    public static synchronized boolean sendMsg(String msg) {
+        try {
+            if(socket == null || socket.isClosed()) {
+                while(activeSessionFlag) {
+                    launch();
+                }
+                return false;
+            } else {
+                outputStream.writeUTF(msg);
+                return true;
+            }
+        } catch(IOException e) {
+            System.out.println("OutputStream not found.");
+            return false;
+        }
+    }
+
     public static boolean sendFile(String text, String PATH) {
         stat = false;
         String[] tokens = text.split("# ");
         String command = tokens[0];
         String fileName = tokens[1];
         File file = new File(PATH + fileName);
-        try{
+        try {
             outputStream.writeUTF(command);
-            outputStream.writeUTF(fileName);;
+            outputStream.writeUTF(fileName);
             byte[] bytes = new byte[1024];
             FileInputStream fis = new FileInputStream(file);
             OutputStream os = socket.getOutputStream();
@@ -86,13 +140,13 @@ public class ServerListener {
             dos.writeLong(file.length());
             dos.flush();
             int count;
-            while ((count = fis.read(bytes)) > 0) {
+            while((count = fis.read(bytes)) > 0) {
                 bos.write(bytes, 0, count);
             }
             bos.flush();
             fis.close();
             return true;
-        }catch(IOException e){
+        } catch(IOException e) {
             e.printStackTrace();
         }
         return false;
@@ -110,13 +164,51 @@ public class ServerListener {
         return true;
     }
 
+    public static void download() {
+        try {
+            stat = false;
+            outputStream.writeUTF("./download");
+            outputStream.flush();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void receivedFile(String PATH, String nameFile) {
+        try {
+            outputStream.writeUTF(nameFile);
+            outputStream.flush();
+            long fileLength = inputStream.readLong();
+            File file = new File(PATH + nameFile);
+            if(file.createNewFile()) {
+                try {
+                    byte[] buf = new byte[1024];
+                    FileOutputStream fos = new FileOutputStream(file);
+                    InputStream is = socket.getInputStream();
+                    BufferedInputStream bis = new BufferedInputStream(is);
+                    int count = 0;
+                    while((fileLength > 0) && (count = bis.read(buf, 0, (int) Math.min(buf.length, fileLength))) > 0) {
+                        fos.write(buf, 0, count);
+                        fileLength -= count;
+                    }
+                    fos.close();
+                    stat = true;
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void resultList() throws IOException {
         String f;
         do {
             f = inputStream.readUTF();
             s = s + f + "#";
             System.out.println(s);
-        } while(!f.equals("OK"));
+        } while(! f.equals("OK"));
         stat = true;
     }
 
@@ -126,5 +218,25 @@ public class ServerListener {
 
     public static boolean isStat() {
         return ! stat;
+    }
+
+    public static void setPATH(String PATH) {
+        ServerListener.PATH = PATH;
+    }
+
+    public static void setFileName(String fileName) {
+        ServerListener.fileName = fileName;
+    }
+
+    public static void setController(ClientController contr) {
+        controller = contr;
+    }
+
+    public static String getUserName() {
+        return userName;
+    }
+
+    public static void setUserName(String userLogin) {
+        userName = userLogin;
     }
 }

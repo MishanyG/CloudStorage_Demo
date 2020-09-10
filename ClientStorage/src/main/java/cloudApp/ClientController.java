@@ -3,8 +3,8 @@ package cloudApp;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 
@@ -26,9 +26,10 @@ public class ClientController implements Initializable {
     public Button sendFile;
     public Button openFile;
     public Button deleteFile;
-    public TextField textFolder;
-    public TextField textFile;
+    public Button downloadFile;
     public HBox cloudField;
+    public Label statusBarFile;
+    public Label statusBarFold;
     private ServerListener serverListener;
     private String PATH = "";
     private boolean pathFull = false;
@@ -44,11 +45,11 @@ public class ClientController implements Initializable {
 
     public void sendFile(ActionEvent actionEvent) throws IOException {
         if(! pathFull) {
-            if(ServerListener.sendFile("./upload# " + textFile.getText(), PATH + textFolder.getText() + "\\"))
-                textFile.setText("File uploaded!");
+            if(ServerListener.sendFile("./upload# " + statusBarFile.getText(), PATH + statusBarFold.getText() + "\\"))
+                statusBarFile.setText("File uploaded!");
         } else {
-            if(ServerListener.sendFile("./upload# " + textFile.getText(), PATH + "\\"))
-                textFile.setText("File uploaded!");
+            if(ServerListener.sendFile("./upload# " + statusBarFile.getText(), PATH + "\\"))
+                statusBarFile.setText("File uploaded!");
         }
         while(ServerListener.isStat())
             listOnFiles.getItems().clear();
@@ -58,9 +59,9 @@ public class ClientController implements Initializable {
     public void openFile(ActionEvent actionEvent) {
         String pathFile = "";
         if(! pathFull)
-            pathFile = PATH + textFolder.getText() + "\\" + textFile.getText();
+            pathFile = PATH + statusBarFold.getText() + "\\" + statusBarFile.getText();
         else
-            pathFile = PATH + "\\" + textFile.getText();
+            pathFile = PATH + "\\" + statusBarFile.getText();
         Desktop desktop = null;
         if(Desktop.isDesktopSupported()) {
             desktop = Desktop.getDesktop();
@@ -74,12 +75,21 @@ public class ClientController implements Initializable {
     }
 
     public void deleteFile(ActionEvent actionEvent) {
-            if (ServerListener.deleteFile(textFile.getText())) {
-                textFile.setText(textFile.getText() + " file deleted from repository!");
+            if (ServerListener.deleteFile(statusBarFile.getText())) {
+                statusBarFile.setText(statusBarFile.getText() + " file deleted from repository!");
             }
         while(ServerListener.isStat())
             listOnFiles.getItems().clear();
         setListOnFiles();
+    }
+
+    public void downloadFile(ActionEvent actionEvent) {
+        ServerListener.download();
+        ServerListener.setPATH(PATH + statusBarFold.getText() + "\\");
+        ServerListener.setFileName(statusBarFile.getText());
+        while(ServerListener.isStat())
+            listFiles.getItems().clear();
+        readFiles(new File(PATH + statusBarFold.getText()));
     }
 
     public void readFiles(File baseDirectory) {
@@ -121,21 +131,20 @@ public class ClientController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        textFile.setOnAction(this :: openFile);
         readDisk();
         new Thread(() -> {
             listFolder.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 if(listFolder.getItems().size() != 0) {
-                    textFolder.setText(newValue);
+                    statusBarFold.setText(newValue);
                     listFiles.getItems().clear();
                     readFiles(new File(PATH + newValue));
                     pathFull = false;
-                    listFiles.getSelectionModel().selectedItemProperty().addListener((observableF, oldValueF, newValueF) -> textFile.setText(newValueF));
+                    listFiles.getSelectionModel().selectedItemProperty().addListener((observableF, oldValueF, newValueF) -> statusBarFile.setText(newValueF));
                 }
             });
             listFolder.setOnMouseClicked(click -> {
                 if(click.getClickCount() == 2) {
-                    PATH = PATH + textFolder.getText() + "\\";
+                    PATH = PATH + statusBarFold.getText() + "\\";
                     pathFull = true;
                     listFolder.getItems().clear();
                     readFolders(new File(PATH));
@@ -151,10 +160,8 @@ public class ClientController implements Initializable {
                 }
             });
             listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                textFile.clear();
-                textFile.setText(newValue);
+                statusBarFile.setText(newValue);
             });
-            serverListener = new ServerListener();
             setListOnFiles();
         }).start();
     }

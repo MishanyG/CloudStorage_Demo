@@ -9,20 +9,24 @@ import javafx.stage.Stage;
 
 public class ClientMain extends Application {
 
-    public static void main(String[] args) {
-        Application.launch(args);
-    }
+@Override
+public void start(Stage primaryStage) throws Exception{
+    Parent root = FXMLLoader.load(getClass().getResource("/view/authorization.fxml"));
+    primaryStage.setTitle("CloudStorage");
+    Scene scene = new Scene(root, 400, 300);
+    primaryStage.setMinWidth(400);
+    primaryStage.setMinHeight(300);
+    primaryStage.setResizable(false);
+    primaryStage.setScene(scene);
+    primaryStage.show();
+}
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/view/sample.fxml"));
-        primaryStage.setTitle("CloudStorage");
-        primaryStage.setScene(new Scene(root));
-        primaryStage.show();
-        primaryStage.setOnCloseRequest(event -> {
-            ClientController.stop();
-            Platform.exit();
-        });
+    public void stop() {
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
 
