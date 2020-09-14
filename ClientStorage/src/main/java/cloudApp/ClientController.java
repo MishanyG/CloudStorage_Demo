@@ -5,6 +5,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 
@@ -51,6 +52,7 @@ public class ClientController implements Initializable {
             if(ServerListener.sendFile("./upload# " + statusBarFile.getText(), PATH + "\\"))
                 statusBarFile.setText("File uploaded!");
         }
+        sendFile.setDisable(true);
         while(ServerListener.isStat())
             listOnFiles.getItems().clear();
             setListOnFiles();
@@ -106,8 +108,9 @@ public class ClientController implements Initializable {
         while(true) {
             String[] s = ServerListener.getS().split("#");
             if(s[s.length - 1].equals("OK")) {
-                for(String value : s)
-                    listOnFiles.getItems().add(value);
+                for(int i = 0; i < s.length - 1; i++) {
+                    listOnFiles.getItems().add(s[i]);
+                }
                 break;
             }
         }
@@ -131,18 +134,31 @@ public class ClientController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        sendFile.graphicProperty().setValue(new ImageView("/images/send.png"));
+        sendFile.setDisable(true);
+        openFile.graphicProperty().setValue(new ImageView("/images/open.png"));
+        openFile.setDisable(true);
+        deleteFile.graphicProperty().setValue(new ImageView("/images/delete.png"));
+        deleteFile.setDisable(true);
+        downloadFile.graphicProperty().setValue(new ImageView("/images/download.png"));
+        downloadFile.setDisable(true);
         readDisk();
         new Thread(() -> {
             listFolder.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                sendFile.setDisable(true);
                 if(listFolder.getItems().size() != 0) {
                     statusBarFold.setText(newValue);
                     listFiles.getItems().clear();
                     readFiles(new File(PATH + newValue));
                     pathFull = false;
-                    listFiles.getSelectionModel().selectedItemProperty().addListener((observableF, oldValueF, newValueF) -> statusBarFile.setText(newValueF));
+                    listFiles.getSelectionModel().selectedItemProperty().addListener((observableF, oldValueF, newValueF) -> {
+                            statusBarFile.setText(newValueF);
+                            sendFile.setDisable(false);
+                    });
                 }
             });
             listFolder.setOnMouseClicked(click -> {
+                sendFile.setDisable(true);
                 if(click.getClickCount() == 2) {
                     PATH = PATH + statusBarFold.getText() + "\\";
                     pathFull = true;
@@ -159,9 +175,7 @@ public class ClientController implements Initializable {
                     }
                 }
             });
-            listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                statusBarFile.setText(newValue);
-            });
+            listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> statusBarFile.setText(newValue));
             setListOnFiles();
         }).start();
     }

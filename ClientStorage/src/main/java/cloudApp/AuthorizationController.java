@@ -7,8 +7,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -19,6 +22,8 @@ import java.util.ResourceBundle;
 public class AuthorizationController implements Initializable {
     public TextField loginField;
     public PasswordField passField;
+    public Button logIn;
+    public Button signUp;
     private ServerListener serverListener;
     private ClientController controller;
 
@@ -27,6 +32,8 @@ public class AuthorizationController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Platform.runLater(() -> loginField.requestFocus());
+        logIn.graphicProperty().setValue(new ImageView("/images/logIn.png"));
+        signUp.graphicProperty().setValue(new ImageView("/images/signUp.png"));
     }
 
     public void logIn(ActionEvent actionEvent) {
@@ -41,7 +48,7 @@ public class AuthorizationController implements Initializable {
         String login = loginField.getText();
         String pass = passField.getText();
 
-        serverListenerLauncher("./singUp " + "petr " + login + " " + pass);
+        serverListenerLauncher("./singUp " + login + " " + pass);
         ServerListener.setUserName(login);
     }
 

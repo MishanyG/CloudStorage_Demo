@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -9,8 +11,10 @@ import java.util.Objects;
 
 public class ClientHandler implements Runnable {
 
-    private static final String PATH = "ServerStorage/OutFiles/";
+    private String PATH = "C:/";
+    private static final String PATH_DB = "jdbc:sqlite:ServerStorage/src/main/resources/CloudStorage.db";
     private String name;
+    private Long user_id;
     private final ServerMain server;
     private final Socket socket;
     private final DataInputStream inputStream;
@@ -33,7 +37,7 @@ public class ClientHandler implements Runnable {
     }
 
     public synchronized void readMessages() throws IOException {
-        readFiles(new File(PATH));
+        readFiles(new File(Objects.requireNonNull(getPath())));
         while(true) {
             String msgFromClient = inputStream.readUTF();
             for(String command : commands) {
@@ -62,6 +66,13 @@ public class ClientHandler implements Runnable {
             ServerMain.LOGGER.info("Started getting file...");
             String fileName = inputStream.readUTF();
             long fileLength = inputStream.readLong();
+            if(!Files.exists(Paths.get(PATH))) {
+                File dir = new File(PATH);
+                if(dir.mkdir())
+                    ServerMain.LOGGER.info("Directory created successfully!");
+                else
+                    ServerMain.LOGGER.error("Error creating folder!");
+            }
             File file = new File(PATH + fileName);
             if(file.createNewFile()) {
                 try{
@@ -140,15 +151,16 @@ public class ClientHandler implements Runnable {
         passwordHandler = new PasswordHandler();
         String[] parts = str.split("\\s");
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:ServerStorage/src/main/resources/CloudStorage.db");
+            connection = DriverManager.getConnection(PATH_DB);
             connection.setAutoCommit(false);
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM" +
                     " Users WHERE login = ?");
             ps.setString(1, parts[1]);
             ResultSet rs = ps.executeQuery();
             connection.commit();
-            if (passwordHandler.validatePassword(parts[2], rs.getInt(4), rs.getString(5), rs.getString(6))) {
+            if (passwordHandler.validatePassword(parts[2], rs.getInt(3), rs.getString(4), rs.getString(5))) {
                 sendMessage("./auth ok " + parts[1]);
+                user_id = rs.getLong(1);
                 name = parts[1];
                 ServerMain.LOGGER.info(name + " connected.");
                 server.subscribe(this);
@@ -164,21 +176,22 @@ public class ClientHandler implements Runnable {
     private boolean signUp(String str) throws InvalidKeySpecException, NoSuchAlgorithmException {
         passwordHandler = new PasswordHandler();
         String[] parts = str.split("\\s");
-        String hashString = passwordHandler.createHash(parts[3]);
+        String hashString = passwordHandler.createHash(parts[2]);
         String[] param = hashString.split(":");
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:ServerStorage/src/main/resources/CloudStorage.db");
+            connection = DriverManager.getConnection(PATH_DB);
             connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO Users (nickname, login, iteration, salt, hash) VALUES (?,?,?,?,?)");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO Users (login, iteration, salt, hash) VALUES (?,?,?,?)");
             ps.setString(1, parts[1]);
-            ps.setString(2, parts[2]);
-            ps.setString(3, param[0]);
-            ps.setString(4, param[1]);
-            ps.setString(5, param[2]);
+            ps.setString(2, param[0]);
+            ps.setString(3, param[1]);
+            ps.setString(4, param[2]);
             ps.executeUpdate();
             connection.commit();
             connection.close();
-        } catch (SQLException throwables) {
+            name = parts[1];
+            setPath();
+        } catch (SQLException throwable) {
             return false;
         }
         return true;
@@ -211,6 +224,43 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private String getPath () {
+        try {
+            connection = DriverManager.getConnection(PATH_DB);
+            connection.setAutoCommit(false);
+            PreparedStatement ps = connection.prepareStatement("SELECT filePath FROM Files WHERE user_ID = ?");
+            ps.setLong(1, user_id);
+            ResultSet rs = ps.executeQuery();
+            connection.commit();
+            PATH = rs.getString(1);
+            connection.close();
+            return PATH;
+        } catch (SQLException e) {
+            e.getStackTrace();
+        }
+        return null;
+    }
+
+    private void setPath () {
+        try {
+            PATH = PATH + name + "/";
+            connection = DriverManager.getConnection(PATH_DB);
+            connection.setAutoCommit(false);
+            PreparedStatement ps = connection.prepareStatement("SELECT User_ID FROM Users WHERE login = ?");
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            user_id = rs.getLong(1);
+            ps = connection.prepareStatement("INSERT INTO Files (User_ID, filePath) VALUES (?,?)");
+            ps.setLong(1, rs.getLong(1));
+            ps.setString(2, PATH);
+            ps.executeUpdate();
+            connection.commit();
+            connection.close();
+        } catch (SQLException e) {
+            e.getStackTrace();
+        }
     }
 
     public void sendMessage(String msg) {
