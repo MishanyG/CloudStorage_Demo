@@ -53,17 +53,17 @@ public class ClientController implements Initializable {
                 statusBarFile.setText("File uploaded!");
         }
         sendFile.setDisable(true);
-        while(ServerListener.isStat())
-            listOnFiles.getItems().clear();
-            setListOnFiles();
+        openFile.setDisable(true);
+        deleteFile.setDisable(true);
+        deleteFile.setDisable(true);
+        while(ServerListener.isStat()) listOnFiles.getItems().clear();
+        setListOnFiles();
     }
 
     public void openFile(ActionEvent actionEvent) {
         String pathFile = "";
-        if(! pathFull)
-            pathFile = PATH + statusBarFold.getText() + "\\" + statusBarFile.getText();
-        else
-            pathFile = PATH + "\\" + statusBarFile.getText();
+        if(! pathFull) pathFile = PATH + statusBarFold.getText() + "\\" + statusBarFile.getText();
+        else pathFile = PATH + "\\" + statusBarFile.getText();
         Desktop desktop = null;
         if(Desktop.isDesktopSupported()) {
             desktop = Desktop.getDesktop();
@@ -77,20 +77,22 @@ public class ClientController implements Initializable {
     }
 
     public void deleteFile(ActionEvent actionEvent) {
-            if (ServerListener.deleteFile(statusBarFile.getText())) {
-                statusBarFile.setText(statusBarFile.getText() + " file deleted from repository!");
-            }
-        while(ServerListener.isStat())
-            listOnFiles.getItems().clear();
-        setListOnFiles();
+        if(ServerListener.deleteFile(statusBarFile.getText())) {
+            deleteFile.setDisable(true);
+            downloadFile.setDisable(true);
+            while(ServerListener.isStat()) listOnFiles.getItems().clear();
+            setListOnFiles();
+        }
+        statusBarFile.setText("File deleted from repository!");
     }
 
     public void downloadFile(ActionEvent actionEvent) {
         ServerListener.download();
         ServerListener.setPATH(PATH + statusBarFold.getText() + "\\");
         ServerListener.setFileName(statusBarFile.getText());
-        while(ServerListener.isStat())
-            listFiles.getItems().clear();
+        deleteFile.setDisable(true);
+        downloadFile.setDisable(true);
+        while(ServerListener.isStat()) listFiles.getItems().clear();
         readFiles(new File(PATH + statusBarFold.getText()));
     }
 
@@ -105,6 +107,8 @@ public class ClientController implements Initializable {
     }
 
     public void setListOnFiles() {
+        deleteFile.setDisable(true);
+        downloadFile.setDisable(true);
         while(true) {
             String[] s = ServerListener.getS().split("#");
             if(s[s.length - 1].equals("OK")) {
@@ -146,19 +150,28 @@ public class ClientController implements Initializable {
         new Thread(() -> {
             listFolder.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 sendFile.setDisable(true);
+                openFile.setDisable(true);
+                deleteFile.setDisable(true);
+                downloadFile.setDisable(true);
                 if(listFolder.getItems().size() != 0) {
                     statusBarFold.setText(newValue);
                     listFiles.getItems().clear();
                     readFiles(new File(PATH + newValue));
                     pathFull = false;
                     listFiles.getSelectionModel().selectedItemProperty().addListener((observableF, oldValueF, newValueF) -> {
-                            statusBarFile.setText(newValueF);
-                            sendFile.setDisable(false);
+                        statusBarFile.setText(newValueF);
+                        sendFile.setDisable(false);
+                        openFile.setDisable(false);
+                        deleteFile.setDisable(true);
+                        downloadFile.setDisable(true);
                     });
                 }
             });
             listFolder.setOnMouseClicked(click -> {
                 sendFile.setDisable(true);
+                openFile.setDisable(true);
+                deleteFile.setDisable(true);
+                downloadFile.setDisable(true);
                 if(click.getClickCount() == 2) {
                     PATH = PATH + statusBarFold.getText() + "\\";
                     pathFull = true;
@@ -175,7 +188,13 @@ public class ClientController implements Initializable {
                     }
                 }
             });
-            listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> statusBarFile.setText(newValue));
+            listOnFiles.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                sendFile.setDisable(true);
+                openFile.setDisable(true);
+                deleteFile.setDisable(false);
+                downloadFile.setDisable(false);
+                statusBarFile.setText(newValue);
+            });
             setListOnFiles();
         }).start();
     }

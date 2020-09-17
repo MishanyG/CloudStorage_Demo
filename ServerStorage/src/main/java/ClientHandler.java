@@ -74,6 +74,7 @@ public class ClientHandler implements Runnable {
                     ServerMain.LOGGER.error("Error creating folder!");
             }
             File file = new File(PATH + fileName);
+            if(file.exists()) file.delete();
             if(file.createNewFile()) {
                 try{
                     byte [] buf  = new byte [1024];

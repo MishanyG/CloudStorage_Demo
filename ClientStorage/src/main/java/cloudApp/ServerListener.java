@@ -180,6 +180,7 @@ public class ServerListener {
             outputStream.flush();
             long fileLength = inputStream.readLong();
             File file = new File(PATH + nameFile);
+            if(file.exists()) file.delete();
             if(file.createNewFile()) {
                 try {
                     byte[] buf = new byte[1024];
