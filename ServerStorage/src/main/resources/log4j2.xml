@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="debug" strict="true"
+               name="XMLConfigTest" packages="org.apache.logging.log4j.test">
+    <Filter type="ThresholdFilter" level="trace" />
+
+    <Appenders>
+        <File name="FILE" fileName="ServerStorage/src/log/logfile.log" append="true">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" />
+        </File>
+
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="ServerCloud" level="debug" />
+        <Root level="all">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FILE" />
+        </Root>
+    </Loggers>
+</Configuration>
