@@ -16,6 +16,7 @@ public class ServerMain {
     static ExecutorService executorServiceClient = Executors.newCachedThreadPool();
 
     public ServerMain() {
+        ClientServiceSQL.connect();
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             clients = new ArrayList <>();
 
@@ -29,6 +30,7 @@ public class ServerMain {
             e.printStackTrace();
             LOGGER.error("Server error...");
         } finally {
+            ClientServiceSQL.disconnect();
         }
     }
 

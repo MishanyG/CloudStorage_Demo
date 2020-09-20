@@ -4,23 +4,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class ClientHandler implements Runnable {
 
-    private String PATH = "C:/";
-    private static final String PATH_DB = "jdbc:sqlite:ServerStorage/src/main/resources/CloudStorage.db";
-    private String name;
-    private Long user_id;
+    private String PATH = "";
     private final ServerMain server;
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
-    private Connection connection;
-    private PasswordHandler passwordHandler;
     private final List <String> commands = Arrays.asList("./upload", "./download", "./delete");
 
     public ClientHandler(ServerMain server, Socket socket) {
@@ -29,7 +23,6 @@ public class ClientHandler implements Runnable {
             this.socket = socket;
             this.inputStream = new DataInputStream(socket.getInputStream());
             this.outputStream = new DataOutputStream(socket.getOutputStream());
-            this.name = "";
             ServerMain.executorServiceClient.execute(new Thread(this));
         } catch(IOException e) {
             throw new RuntimeException("Problems when you create handler of client.");
@@ -37,7 +30,8 @@ public class ClientHandler implements Runnable {
     }
 
     public synchronized void readMessages() throws IOException {
-        readFiles(new File(Objects.requireNonNull(getPath())));
+        PATH = ClientServiceSQL.getPath();
+        readFiles(new File(Objects.requireNonNull(PATH)));
         while(true) {
             String msgFromClient = inputStream.readUTF();
             for(String command : commands) {
@@ -107,9 +101,9 @@ public class ClientHandler implements Runnable {
                     System.out.println(list);
                 }
             }
-            outputStream.writeUTF("OK");
-            outputStream.flush();
         }
+        outputStream.writeUTF("OK");
+        outputStream.flush();
     }
 
     private void delete() {
@@ -148,61 +142,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean logIn(String str) {
-        passwordHandler = new PasswordHandler();
-        String[] parts = str.split("\\s");
-        try {
-            connection = DriverManager.getConnection(PATH_DB);
-            connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM" +
-                    " Users WHERE login = ?");
-            ps.setString(1, parts[1]);
-            ResultSet rs = ps.executeQuery();
-            connection.commit();
-            if (passwordHandler.validatePassword(parts[2], rs.getInt(3), rs.getString(4), rs.getString(5))) {
-                sendMessage("./auth ok " + parts[1]);
-                user_id = rs.getLong(1);
-                name = parts[1];
-                ServerMain.LOGGER.info(name + " connected.");
-                server.subscribe(this);
-                return true;
-            }
-            connection.close();
-        } catch (NoSuchAlgorithmException | SQLException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    private boolean signUp(String str) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        passwordHandler = new PasswordHandler();
-        String[] parts = str.split("\\s");
-        String hashString = passwordHandler.createHash(parts[2]);
-        String[] param = hashString.split(":");
-        try {
-            connection = DriverManager.getConnection(PATH_DB);
-            connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO Users (login, iteration, salt, hash) VALUES (?,?,?,?)");
-            ps.setString(1, parts[1]);
-            ps.setString(2, param[0]);
-            ps.setString(3, param[1]);
-            ps.setString(4, param[2]);
-            ps.executeUpdate();
-            connection.commit();
-            connection.close();
-            name = parts[1];
-            setPath();
-        } catch (SQLException throwable) {
-            return false;
-        }
-        return true;
-    }
-
     public boolean authentication() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         String str;
         while ((str = inputStream.readUTF()) != null) {
             if (str.startsWith("./singUp")) {
-                if (signUp(str)) {
+                if (ClientServiceSQL.signUp(str)) {
                     sendMessage("./singUp passed");
                     break;
                 } else {
@@ -210,11 +154,13 @@ public class ClientHandler implements Runnable {
                 }
             }
             if (str.startsWith("./logIn")) {
-                if (logIn(str)) {
+                str = ClientServiceSQL.logIn(str);
+                if (str.startsWith("./auth ok")) {
+                    server.subscribe(this);
                     sendMessage("./logIn passed");
                     break;
                 } else {
-                    sendMessage("./logIn failed");
+                    sendMessage(str);
                 }
             }
         }
@@ -225,43 +171,6 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         }
         return true;
-    }
-
-    private String getPath () {
-        try {
-            connection = DriverManager.getConnection(PATH_DB);
-            connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement("SELECT filePath FROM Files WHERE user_ID = ?");
-            ps.setLong(1, user_id);
-            ResultSet rs = ps.executeQuery();
-            connection.commit();
-            PATH = rs.getString(1);
-            connection.close();
-            return PATH;
-        } catch (SQLException e) {
-            e.getStackTrace();
-        }
-        return null;
-    }
-
-    private void setPath () {
-        try {
-            PATH = PATH + name + "/";
-            connection = DriverManager.getConnection(PATH_DB);
-            connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement("SELECT User_ID FROM Users WHERE login = ?");
-            ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-            user_id = rs.getLong(1);
-            ps = connection.prepareStatement("INSERT INTO Files (User_ID, filePath) VALUES (?,?)");
-            ps.setLong(1, rs.getLong(1));
-            ps.setString(2, PATH);
-            ps.executeUpdate();
-            connection.commit();
-            connection.close();
-        } catch (SQLException e) {
-            e.getStackTrace();
-        }
     }
 
     public void sendMessage(String msg) {
