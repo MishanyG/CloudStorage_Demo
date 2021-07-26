@@ -1,0 +1,30 @@
+.list-cell:filled:selected:focused, .list-cell:filled:selected {
+    -fx-background-color: linear-gradient(#330201 0%, #770b0c 25%, #aa6450 75%, #eecec1 100%);
+    -fx-text-fill: white;
+}
+.list-cell { -fx-text-fill: black; }
+.list-cell:odd { -fx-background-color: #9bffb7; }
+.list-cell:even { -fx-background-color: #8f8; }
+.list-cell:filled:hover {
+    -fx-background-color: #3095ff;
+    -fx-text-fill: white;
+}
+.button {
+    -fx-font-family: "Comic Sans MS";
+    -fx-font-weight: bold;
+    -fx-font-stretch: expanded;
+}
+.button:hover {
+    -fx-background: rgba(0,0,0,0);
+    -fx-color: #3a7999;
+    -fx-box-shadow: inset 0 0 0 3px #3a7999;
+}
+.label {
+    -fx-font-family: "Times New Roman";
+    -fx-font-weight: 900;
+    -fx-font-stretch: ultra-expanded;
+}
+.text-field {
+    -fx-font-size: 14;
+    -fx-font-weight: 900;
+}
